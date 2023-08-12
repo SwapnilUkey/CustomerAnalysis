@@ -1,0 +1,49 @@
+# Question 1 of the assignment 1
+# giving values for them mean and standard deviation
+n <- 50
+mean <- 10
+sd <- 10
+
+# creating vector x1 and x2 
+x1 <- rnorm(n, mean, sd)
+x2 <- rexp(n, rate = 1)
+
+# calculate linear combination of x1 and x2 in y
+y <- x1 + x2
+
+# Converting to data frame
+data_frame <- data.frame(x1, x2, y)
+
+#  fitting the linear model using lm()
+fit_plus <- lm(y ~ x1 + x2, data = data_frame)
+fit_min <- lm(y ~ x1 - x2, data = data_frame)
+
+
+summary(fit_plus)
+summary(fit_min)
+
+# Plotting the graph
+plot(fit_plus)
+
+
+
+# Question 2 of Assignment 1
+height <- c(1.82, 1.56, 1.74, 1.55, 1.63, 1.91, 2.05, 1.84, 1.80, 1.71)
+weight <- c(80.4, 66.2, 68.9, 70.1, 75, 83.7, 105.6, 79.5, 68, 69.4)
+
+bmi_df <- data.frame(height, weight)
+
+# Calculating BMI and adding to it into different column
+bmi_df$bmi <- ((bmi_df$weight / bmi_df$height) / bmi_df$height)
+
+# calculating mean and std
+mean_ind <- apply(bmi_df, 2, mean)
+std_ind <- apply(bmi_df, 2, sd)
+
+# creating sample data set according to condition given
+sample_df <- subset(bmi_df, height >= 1.70 & weight < 70)
+
+# calculating mean and std
+mean_sam_ind <- apply(sample_df, 2, mean)
+std_sam_ind <- apply(sample_df, 2, sd)
+

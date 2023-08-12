@@ -1,0 +1,503 @@
+# Name: Swapnil Ukey
+# Module Code: 2223-MS5108 Applied Customer Analytics
+# Student Id: 22220959
+
+# get the current working directory
+my_csv_location <- getwd()
+
+# set working directory
+setwd(my_csv_location)
+
+# Setting csv name in an variable 
+gov_csv_name <- "https://data-housinggovie.opendata.arcgis.com/datasets/housinggovie::covid19communitycallreporter.csv?outSR=%7B%22latestWkid%22%3A4326%2C%22wkid%22%3A4326%7D"
+client_csv <- "client_analysis.csv"
+tweets_csv <- "tweets.csv"
+
+
+#load the data set.
+gov_df <- read.csv(gov_csv_name, header = TRUE)
+client_df <- read.csv(client_csv,  header = TRUE)
+tweets <- read.csv(tweets_csv,  header = TRUE, stringsAsFactors = FALSE)
+
+# Cleaning the gov_df
+gov_df <- na.omit(gov_df)
+sapply(gov_df, class)
+# convert all columns to integer
+#gov_df[] <- lapply(gov_df, as.integer)
+
+#######################################################################################################
+# Ploting Histogram
+hist(gov_df$totalcalls, 
+     col = "blue" , 
+     xlim = c(0, max(gov_df$totalcalls)), 
+     ylim = c(0, max(gov_df$totalcalls)),
+     main = "Histogram of Different Calls at Call Center", 
+     xlab = "Number Of Calls",
+     density = 20,
+     border = "blue")
+
+hist(gov_df$collectiondelivery, 
+     col = "red", 
+     xlim = c(0, max(gov_df$collectiondelivery)), 
+     ylim = c(0, max(gov_df$collectiondelivery)),
+     add = TRUE,  
+     density = 20,
+     border = "red")
+
+hist(gov_df$social, 
+     col = "green", 
+     add = TRUE, 
+     density = 20,
+     border = "green")
+hist(gov_df$meals, 
+     col = "orange", 
+     add = TRUE, 
+     density = 20,
+     border = "orange")
+hist(gov_df$other, 
+     col = "cyan", 
+     add = TRUE, 
+     density = 20,
+     border = "cyan")
+
+legend("topright", 
+       legend = c("Total Calls", "Collection", "Social", "Meals", "Other"), 
+       fill = c("blue", "red","green","orange","cyan"), 
+       border = "white")
+
+# create matrix of histograms
+
+gov_df_sub_col <- gov_df[, c("localauthority", "totalcalls", "collectiondelivery", 
+                             "social", "meals", "other", "otherrequest", "callback", "forummeetings")]
+
+par(mfrow = c(3, 3))  # set the layout of plots
+for (i in 2:ncol(gov_df_sub_col)) {
+  hist(gov_df_sub_col[,i], main = paste("Histogram of Calls " ,
+                                        names(gov_df_sub_col)[i] ,sep = '- '),
+       xlab = names(gov_df_sub_col)[i])  # plot histogram for each column
+}
+
+#################################################################################################
+# histogram using ggplot
+library(ggplot2)
+library(gridExtra)
+
+gov_df_sub <- subset(gov_df,localauthority == 'Dublin' | localauthority == 'Galway City')
+
+plot_sub1 <- ggplot(gov_df_sub, aes(x=totalcalls, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none") + 
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub2 <- ggplot(gov_df_sub, aes(x=collectiondelivery, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none")+ 
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub3 <- ggplot(gov_df_sub, aes(x=other, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none") + 
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub4 <- ggplot(gov_df_sub, aes(x=social, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none") + 
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub5 <- ggplot(gov_df_sub, aes(x=meals, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none") +
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub6 <- ggplot(gov_df_sub, aes(x=otherrequest, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none")+ 
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub7 <- ggplot(gov_df_sub, aes(x=callback, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="none")+
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+plot_sub8 <- ggplot(gov_df_sub, aes(x=forummeetings, fill=localauthority, color=localauthority)) +
+  geom_histogram(position="identity", alpha=0.5)+ theme(legend.position="right")+
+  scale_color_manual(values=c("#999999", "#E69F00", "#56B4E9"))+
+  scale_fill_manual(values=c("#999999", "#E69F00", "#56B4E9"))
+
+#grid.arrange(plot_sub1, plot_sub2, plot_sub3, plot_sub4, 
+#             plot_sub5, plot_sub6, plot_sub7, plot_sub8, 
+#             ncol = 4)  
+
+fig_A <- ggpubr::ggarrange(plot_sub1, plot_sub2, plot_sub3, plot_sub4, 
+                               plot_sub5, plot_sub6, plot_sub7, plot_sub8, ncol=3, nrow=3, 
+                               common.legend = TRUE, legend = "top")
+
+
+###################################################################################################
+
+gov_df_sub_col <- gov_df[, c("localauthority", "totalcalls", "collectiondelivery", 
+                             "social", "meals", "other", "otherrequest", "callback", "forummeetings")]
+
+gov_df_sub <- subset(gov_df_sub_col,localauthority == 'Dublin' | 
+                       localauthority == 'Galway City'| 
+                       localauthority == 'Cork City' |
+                     localauthority == 'Wexford'
+                     )
+                  
+cols <- c("#1170AA", "#55AD89", "#EF6F6A", "#EF6FFF")
+
+sca_p1 <- ggplot(data = gov_df_sub, 
+       aes(x = collectiondelivery , y =totalcalls ,color = localauthority,
+           shape = localauthority)) +
+  geom_point(show.legend = FALSE,size = 1.3) +
+  theme(panel.grid = element_line(size = 0.55,linetype = 2)) + 
+  scale_color_manual(values = cols) + 
+  stat_ellipse(type = "t") +
+  stat_ellipse(type = "norm", linetype = 2) +
+  facet_wrap(~localauthority, scales = "free", strip.position = "bottom") +
+  theme(panel.border = element_rect(fill = "transparent", # Needed to add the border
+                                    color = "black", linewidth = 1.5)) + 
+  guides(fill=FALSE, color=FALSE)
+
+sca_p2 <- ggplot(data = gov_df_sub, 
+                 aes(x =social , y =totalcalls ,color = localauthority,
+                     shape = localauthority)) +
+  geom_point(show.legend = FALSE,size = 1.3) +
+  theme(panel.grid = element_line(size = 0.55,linetype = 2)) + 
+  scale_color_manual(values = cols) + 
+  stat_ellipse(type = "t") +
+  stat_ellipse(type = "norm", linetype = 2) +
+  facet_wrap(~localauthority, scales = "free", strip.position = "bottom") +
+  theme(panel.border = element_rect(fill = "transparent", # Needed to add the border
+                                    color = "black", linewidth = 1.5)) + 
+  guides(fill=FALSE, color=FALSE)
+
+sca_p3 <- ggplot(data = gov_df_sub, 
+                 aes(x = meals, y =totalcalls ,color = localauthority,
+                     shape = localauthority)) +
+  geom_point(show.legend = FALSE,size = 1.3) +
+  theme(panel.grid = element_line(size = 0.55,linetype = 2)) + 
+  scale_color_manual(values = cols) + 
+  stat_ellipse(type = "t") +
+  stat_ellipse(type = "norm", linetype = 2) +
+  facet_wrap(~localauthority, scales = "free", strip.position = "bottom") +
+  theme(panel.border = element_rect(fill = "transparent", # Needed to add the border
+                                    color = "black", linewidth = 1.5)) + 
+  guides(fill=FALSE, color=FALSE)
+
+sca_p4 <- ggplot(data = gov_df_sub, 
+                 aes(x = other, y =totalcalls ,color = localauthority,
+                     shape = localauthority)) +
+  geom_point(show.legend = FALSE,size = 1.3) +
+  theme(panel.grid = element_line(size = 0.55,linetype = 2)) + 
+  scale_color_manual(values = cols) + 
+  stat_ellipse(type = "t") +
+  stat_ellipse(type = "norm", linetype = 2) +
+  facet_wrap(~localauthority, scales = "free", strip.position = "bottom") +
+  theme(panel.border = element_rect(fill = "transparent", # Needed to add the border
+                                    color = "black", linewidth = 1.5)) + 
+  guides(fill=FALSE, color=FALSE)
+
+fig_B <- ggpubr::ggarrange(sca_p1, sca_p2, sca_p3, sca_p4, 
+                              ncol=2, nrow=2, 
+                              common.legend = TRUE, legend = "top")
+
+#######################################################################################################
+
+pairs(gov_df_sub[,c("totalcalls", "collectiondelivery", 
+                    "social", "meals", "other", "otherrequest", "callback", "forummeetings")],
+  col=ifelse(gov_df_sub$localauthority=='Dublin', "#1170AA", 
+             ifelse(gov_df_sub$localauthority=='Galway City', "#55AD89",
+                    ifelse(gov_df_sub$localauthority=='Cork City', "#EF6F6A","#EF6FFF"))))
+
+
+dev.off()
+# Define color and shape palettes for local authorities
+cols <- c("red", "blue", "green", "orange")
+shapes <- c(1, 2, 3, 4, 5)
+
+# Create scatter plot 1: Total Calls vs Collection Delivery
+plot(gov_df_sub$totalcalls, gov_df_sub$collectiondelivery, 
+     xlab = "Total Calls", ylab = "Collection Delivery",
+     main = "Total Calls vs Collection Delivery",
+     col = cols[as.factor(gov_df_sub$localauthority)],
+     pch = shapes[as.factor(gov_df_sub$localauthority)])
+
+# Add legend
+legend("topright", legend = (unique(gov_df_sub$localauthority)), fill = cols, pch = shapes, cex = 0.8)
+
+# Create scatter plot 2: Total Calls vs Social
+plot(gov_df_sub$totalcalls, gov_df_sub$social, 
+     xlab = "Total Calls", ylab = "Social",
+     main = "Total Calls vs Social",
+     col = cols[as.factor(gov_df_sub$localauthority)],
+     pch = shapes[as.factor(gov_df_sub$localauthority)])
+
+# Add legend
+legend("topright", legend = unique(gov_df_sub$localauthority), fill = cols, pch = shapes, cex = 0.8)
+
+# Create scatter plot 3: Total Calls vs Meals
+plot(gov_df_sub$totalcalls, gov_df_sub$otherrequest, 
+     xlab = "Total Calls", ylab = "Other Request",
+     main = "Total Calls vs Other Request",
+     col = cols[as.factor(gov_df_sub$localauthority)],
+     pch = shapes[as.factor(gov_df_sub$localauthority)])
+
+# Add legend
+legend("topright", legend = unique(gov_df_sub$localauthority), fill = cols, pch = shapes, cex = 0.8)
+
+######################################################################################################
+
+spending_df <- client_df
+spending_df$Month <- as.Date(paste("2022", spending_df$Month, "01"), "%Y %B %d")
+
+sapply(spending_df, class)
+spending_df$SmartBear <- as.integer(gsub(",", "", spending_df$SmartBear))
+spending_df$Cisco <- as.integer(gsub(",", "", spending_df$Cisco))
+spending_df$Deloitte <- as.integer(gsub(",", "", spending_df$Deloitte))
+spending_df$USB <- as.integer(gsub(",", "", spending_df$USB))
+spending_df$Diligent <- as.integer(gsub(",", "", spending_df$Diligent))
+spending_df$SAP <- as.integer(gsub(",", "", spending_df$SAP))
+spending_df$Amazon <- as.integer(gsub(",", "", spending_df$Amazon))
+
+options(repr.plot.width = 8, repr.plot.height = 6)
+
+# Create the line graph
+plot(x = spending_df$Month, y = spending_df$SAP, type = "l", col = "blue",
+     xlab = "Month", ylab = "Spending ($)", main = "Spending by Client",ylim = c(50000, 460092))
+
+# Add lines for the other companies
+lines(x = spending_df$Month, y = spending_df$Cisco, col = "red")
+lines(x = spending_df$Month, y = spending_df$Deloitte, col = "green")
+lines(x = spending_df$Month, y = spending_df$USB, col = "orange")
+lines(x = spending_df$Month, y = spending_df$Diligent, col = "purple")
+lines(x = spending_df$Month, y = spending_df$SmartBear, col = "brown")
+lines(x = spending_df$Month, y = spending_df$Amazon, col = "black")
+options(scipen = 999)
+
+# Add a legend
+legend("topleft", c("SmartBear", "Cisco", "Deloitte", "USB", "Diligent", "SAP", "Amazon"),
+       col = c("blue", "red", "green", "orange", "purple", "brown", "black"), lty = 1,cex = 0.7)
+
+
+# Create a line plot of spending over time
+ggplot(data = spending_df, aes(x = Month)) + 
+  geom_line(aes(y = SAP, color = "SAP")) +
+  geom_line(aes(y = Cisco, color = "Cisco")) +
+  geom_line(aes(y = Deloitte, color = "Deloitte")) +
+  geom_line(aes(y = USB, color = "USB")) +
+  geom_line(aes(y = Diligent, color = "Diligent")) +
+  geom_line(aes(y = SmartBear, color = "SmartBear")) +
+  geom_line(aes(y = Amazon, color = "Amazon")) +
+  geom_point(aes(y = SAP, color = "SAP")) +
+  geom_point(aes(y = Cisco, color = "Cisco")) +
+  geom_point(aes(y = Deloitte, color = "Deloitte")) +
+  geom_point(aes(y = USB, color = "USB")) +
+  geom_point(aes(y = Diligent, color = "Diligent")) +
+  geom_point(aes(y = SmartBear, color = "SmartBear")) +
+  geom_point(aes(y = Amazon, color = "Amazon")) +
+  scale_color_manual(values = c(SAP = "blue", Cisco = "red", Deloitte = "green", USB = "orange", Diligent = "purple", SmartBear = "brown", Amazon = "black")) +
+  labs(x = "Month", y = "Spending ($)", title = "Spending by Client")+
+  theme(legend.position="top",plot.title = element_text(hjust = 0.5)) +
+  scale_y_continuous(labels = scales::comma_format())
+
+#######################################################################################################
+
+library(tm)
+#?tm_map
+getTransformations()
+corpus <- Corpus(VectorSource(tweets$text))
+inspect(corpus)
+writeLines(as.character(corpus[5]))
+
+#Pre Processing 
+top_space <- content_transformer(function(x, pattern) {return (gsub(pattern," ",x))})
+remove_punctuation <- function(x) gsub("[[:punct:]]", "", x)
+
+#corpus <- removeEmptyDocs(corpus)
+#corpus <- tm_map(corpus, top_space,"-")
+#corpus <- tm_map(corpus, top_space,":")
+
+corpus <- tm_map(corpus,(stripWhitespace))
+corpus <- tm_map(corpus, (tolower))
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus,(remove_punctuation))
+corpus <- tm_map(corpus,(remove_symbols))
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+corpus <- tm_map(corpus,(stemDocument))
+corpus <- tm_map(corpus, removeWords, c("rt", "amp", "via"))
+
+# Remove emoticons and emojis
+#corpus <- gsub(paste(emoticon_regex, collapse="|"), "", corpus)
+#corpus <- gsub(emoji_regex, "", corpus)
+
+# Remove empty documents
+corpus <- corpus[corpus != ""]
+inspect(corpus)
+writeLines(as.character(corpus))
+
+# Create document term matrix
+dtm <- DocumentTermMatrix(corpus)
+
+# Get frequency of terms and plot top 25
+freq <- colSums(as.matrix(dtm))
+freq_sorted <- sort(freq, decreasing = TRUE)
+
+dev.off()
+# Define color vector with 25 colors
+freq_colors <- colorRampPalette(c("white", "blue"))(25)
+
+# Divide frequencies into equal intervals and map each interval to a color
+freq_intervals <- cut(freq_sorted[1:25], breaks=25)
+bar_colors <- freq_colors[as.numeric(freq_intervals)]
+
+# Set the margins to make space for the legend
+par(mar=c(5, 6, 4, 2) + 0.1)
+
+# Create bar plot with colored bars and legend
+barplot(freq_sorted[1:25], las=2.5, cex.names=0.8, main="Top 25 words in tweets", xlab="Word", ylab="Frequency", col=bar_colors)
+legend("topright", legend=paste("Freq:", freq_sorted[1:25]), fill=freq_colors, cex=0.5)
+
+#############################################################################################
+
+# Create word cloud of 40 most common words
+library(wordcloud)
+set.seed(1234)
+wordcloud(names(freq_sorted)[1:40], freq_sorted[1:40], scale=c(5,1), rot.per=0.25, random.order=FALSE, colors=brewer.pal(8, "Dark2"))
+
+#############################################################################################
+
+# Plot tweet usage by hour
+tweet_times <- format(as.POSIXct(tweets$date, tz="GMT"), "%H")
+hourly_tweet_counts <- table(tweet_times)
+
+# Set the color of bars 6 to 10 as blue, and the rest as red
+col_vec <- rep("darkblue", 24)
+col_vec[7:11] <- "lightblue"
+  
+barplot(hourly_tweet_counts, main="Tweet usage by hour", xlab="Hour of day", ylab="Number of tweets",col=col_vec)
+
+#############################################################################################
+
+# Plot tweet usage by month
+tweet_months <- format(as.POSIXct(tweets$date, tz="GMT"), "%Y-%m")
+monthly_tweet_counts <- table(tweet_months)
+
+library(RColorBrewer)
+# Define colors for the barplot
+num_colors <- length(unique(monthly_tweet_counts))
+palette <- brewer.pal(num_colors, "YlGnBu")
+
+# Color the bars from 6 to 10 in blue
+palette[1:5] <- "steelblue"
+  
+# Plot the barplot with colored bars and a legend
+barplot(monthly_tweet_counts, main="Tweet usage by month", xlab="Month", ylab="Number of tweets", col=palette)
+legend("topleft", legend=levels(factor(tweet_months)), fill=palette, title="Month",cex = 0.5)
+
+
+#############################################################################################
+
+# Get top 15 words for iPhone and Media Studio sources
+iphone_corpus <- Corpus(VectorSource(tweets$text[tweets$source == "Twitter for iPhone"]))
+iphone_corpus <- tm_map(iphone_corpus, content_transformer(tolower))
+iphone_corpus <- tm_map(iphone_corpus, removeNumbers)
+iphone_corpus <- tm_map(iphone_corpus, removePunctuation)
+iphone_corpus <- tm_map(iphone_corpus, removeWords, stopwords("english"))
+iphone_dtm <- DocumentTermMatrix(iphone_corpus)
+iphone_freq <- colSums(as.matrix(iphone_dtm))
+iphone_freq_sorted <- sort(iphone_freq, decreasing = TRUE)
+cat("Top 15 words for source = 'Twitter for iPhone':\n")
+cat(names(iphone_freq_sorted)[1:15], sep=", ")
+cat("\n")
+media_corpus <- Corpus(VectorSource(tweets$text[tweets$source == "Media Studio"]))
+media_corpus <- tm_map(media_corpus, content_transformer(tolower))
+media_corpus <- tm_map(media_corpus, removeNumbers)
+media_corpus <- tm_map(media_corpus, removePunctuation)
+media_corpus <- tm_map(media_corpus, removeWords, stopwords("english"))
+media_dtm <- DocumentTermMatrix(media_corpus)
+media_freq <- colSums(as.matrix(media_dtm))
+media_freq_sorted <- sort(media_freq, decreasing = TRUE)
+cat("Top 15 words for source = 'Media Studio':\n")
+cat(names(media_freq_sorted)[1:15], sep=", ")
+cat("\n")
+
+###############################################################################################
+
+# split dataframe by date into two subsets
+first_six_months <- tweets[tweets$date >= "2018-02-01", ] 
+last_six_months <- tweets[tweets$date < "2017-08-20", ] 
+
+# create corpus from each subset
+first_corpus <- Corpus(VectorSource(first_six_months$text))
+last_corpus <- Corpus(VectorSource(last_six_months$text))
+
+first_corpus <- tm_map(first_corpus, (stripWhitespace))
+first_corpus <- tm_map(first_corpus, (tolower))
+first_corpus <- tm_map(first_corpus, removeNumbers)
+first_corpus <- tm_map(first_corpus, (remove_punctuation))
+first_corpus <- tm_map(first_corpus, removeWords, stopwords("english"))
+first_corpus <- tm_map(first_corpus, (stemDocument))
+first_corpus <- tm_map(first_corpus, removeWords, c("rt", "amp", "via"))
+
+# Remove empty documents
+first_corpus <- first_corpus[first_corpus != ""]
+inspect(first_corpus)
+
+#last_corpus <- tm_map(last_corpus, top_space,"-")
+#last_corpus <- tm_map(last_corpus, top_space,":")
+
+last_corpus <- tm_map(last_corpus, (stripWhitespace))
+last_corpus <- tm_map(last_corpus, (tolower))
+last_corpus <- tm_map(last_corpus, removeNumbers)
+last_corpus <- tm_map(last_corpus, (remove_punctuation))
+last_corpus <- tm_map(last_corpus, removeWords, stopwords("english"))
+last_corpus <- tm_map(last_corpus, (stemDocument))
+last_corpus <- tm_map(last_corpus, removeWords, c("rt", "amp", "via"))
+
+# Remove empty documents
+last_corpus <- last_corpus[last_corpus != ""]
+inspect(last_corpus)
+
+# create term-document matrix from each corpus
+first_tdm <- TermDocumentMatrix(first_corpus)
+last_tdm <- TermDocumentMatrix(last_corpus)
+
+##################################
+
+# Find word frequencies for each TDM
+first_freq <- sort(rowSums(as.matrix(first_tdm)), decreasing = TRUE)
+last_freq <- sort(rowSums(as.matrix(last_tdm)), decreasing = TRUE)
+
+first_freq_df <- as.data.frame(first_freq)
+last_freq_df <- as.data.frame(last_freq)
+
+first_freq_df$ID <- row.names(first_freq_df)
+row.names(first_freq_df) <- NULL
+colnames(first_freq_df)[colnames(first_freq_df) == "ID"] <- "Words"
+
+last_freq_df$ID <- row.names(last_freq_df)
+row.names(last_freq_df) <- NULL
+colnames(last_freq_df)[colnames(last_freq_df) == "ID"] <- "Words"
+
+# Merge the two dataframes on the "Words" column and keep only non-matching rows
+new_freq <- merge(first_freq_df, last_freq_df, by = "Words", all = TRUE)
+new_freq <- subset(new_freq, is.na(first_freq))
+new_freq <- new_freq[order(-new_freq$last_freq),]
+new_freq <- new_freq[1:6, -c(2)]
+
+# Plot a bar chart with words and frequencies
+# Create the color palette
+blue_palette <- colorRampPalette(c("darkblue", "lightblue"))
+
+# Set the plot parameters
+par(mar = c(5, 4, 4, 2) + 0.1, cex.axis = 0.8, cex.lab = 0.8)
+
+# Create the bar plot
+barplot(new_freq$last_freq, names.arg = new_freq$Words, col = blue_palette(length(new_freq$last_freq)),
+        xlab = "Words", ylab = "Frequency", main = "Last Frequency of Words",
+        border = NA, ylim = c(0, max(new_freq$last_freq) * 1.2))
+
+# Add a legend
+legend("topright", legend = "Frequency", fill = blue_palette(length(new_freq$last_freq)),
+       border = NA, bty = "n", cex = 0.8, title = "Legend")
